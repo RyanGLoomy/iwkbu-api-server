@@ -1,0 +1,9 @@
+{
+  "buildCommand": "echo 'No build needed'",
+  "installCommand": "npm install",
+  "functions": {
+    "api/[[...route]].ts": {
+      "maxDuration": 30
+    }
+  }
+}
