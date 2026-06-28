@@ -272,22 +272,28 @@ export function getRecordsByPlates(plates: string[]): ComplianceRecord[] {
     if (record) {
       results.push(record);
     } else {
-      // Unknown plates get "unknown" status
+      // Unknown plates: generate deterministic realistic record
+      // (same plate → same result, every time)
+      const h = seededHash(plate);
+      const { status, issues, catatan } = determineStatus(plate);
+      const po = PO_SEEDS[h % PO_SEEDS.length]!;
+
       results.push({
         nomor_polisi: plate,
-        compliance_status: COMPLIANCE_STATUS.UNKNOWN,
-        issue_count: 0,
+        compliance_status: status,
+        issue_count: issues,
         source_updated_at: new Date().toISOString(),
         payload: {
-          po_nama: "Tidak Diketahui",
-          po_kode: "UNKNOWN",
-          merk: "—",
-          tahun: 0,
-          route: "—",
-          kapasitas: 0,
-          masa_berlaku_iwkbu: "—",
-          jenis_kendaraan: "—",
-          terminal_asal: "—",
+          po_nama: po.nama,
+          po_kode: po.kode,
+          merk: pick(po.merkMix, h),
+          tahun: 2014 + (h % 11),
+          route: pick(po.routes, h),
+          kapasitas: pick([55, 35, 19], h),
+          masa_berlaku_iwkbu: generateMasaBerlaku(h),
+          jenis_kendaraan: pick(["Bus Besar", "Bus Sedang", "Bus Mini"], h),
+          terminal_asal: po.terminal,
+          ...(catatan ? { catatan } : {}),
         },
       });
     }
